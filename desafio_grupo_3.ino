@@ -70,7 +70,8 @@ void loop() {
 
     //Define os headers da requisição http
     https.addHeader("Content-Type", "json");   
-
+   
+   
     //Verifica o código de retorno da requisição
     int httpResponseCode = https.PUT(http_body_json);   //Realiza a requisição http com método POST
   
