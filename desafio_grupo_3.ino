@@ -30,7 +30,10 @@ const char* ca_cert = \
 "TBj0/VLZjmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n" \
 "-----END CERTIFICATE-----\n";
 
+//endereço da API (Rota para enviar a payload)
+const String api_URL = "https://autosat.iochip.com.br/api/measurements"; 
 
+//função para conectar o wifi
 void connect_wifi(){
   WiFi.begin(wifi_ssid, wifi_password);//inicia uma tentativa de conectar ao wifi
 
@@ -48,6 +51,50 @@ void connect_wifi(){
   // Obs: falta o tratamento do caso quando não consegue conectar ao wifi
 }
 
+void makeHttpsRequest(){
+  HTTPClient https;// define o objeto com métodos para fazer uma requisição http]
+  bool httpsPronto = https.begin(api_URL, ca_cert);//especifica a URL da API e o certificado 
+
+  if(httpsPronto){
+
+    String code = "6bdb104d07ed03ee335b1a85798ec144c9ccdd4f6c556d63ccfcdd095cacac0a";
+    String payload = "palavra";
+    String http_body_json = "{\"code\":\""+code+"\","+"\"payload\":\""+payload+"\"}";
+
+    //Define os headers da requisição http
+    https.addHeader("Content-Type", "json");   
+  
+  
+    //Verifica o código de retorno da requisição
+    int httpResponseCode = https.POST(http_body_json); //Realiza a requisição http com método POST
+    
+    //o código http  vai ser menor que zero se ocorrer erro
+    if(httpResponseCode>0){
+    
+      if (httpResponseCode == HTTP_CODE_OK || httpResponseCode == HTTP_CODE_MOVED_PERMANENTLY) {//testa se a requisição foi bem sucedida
+        String response = https.getString(); //Recebe a resposta da requisição
+        Serial.println(httpResponseCode);   //Print return code
+        Serial.println(response);           //Print request answer
+      }else{
+        Serial.print("Erro,a requisição POST falhou: ");
+        Serial.println(httpResponseCode);
+      }
+    }else{
+    
+      Serial.print("Erro na requisição: ");
+      Serial.println(httpResponseCode);
+    
+    }
+  
+  https.end();  //Termina a "conexão"
+  delay(5000);      
+        
+  }else{
+    Serial.println("a conexão https não está pronta");
+  }  
+  delay(5000); 
+}
+
 void setup() {
   
   Serial.begin(115200);
@@ -60,37 +107,8 @@ void loop() {
   
   if ((WiFi.status() == WL_CONNECTED)) { 
       
-    HTTPClient https;// define o objeto com métodos para fazer uma requisição http
-
-    https.begin("https://autosat.iochip.com.br/api/measurements", ca_cert);//especifica a URL da API e o certificado
-
-    String code = "6bdb104d07ed03ee335b1a85798ec144c9ccdd4f6c556d63ccfcdd095cacac0a";
-    String payload = "palavra";
-    String http_body_json = "{\"code\":\""+code+"\","+"\"payload\":\""+payload+"\"}";
-
-    //Define os headers da requisição http
-    https.addHeader("Content-Type", "json");   
-
-    //Verifica o código de retorno da requisição
-    int httpResponseCode = https.PUT(http_body_json);   //Realiza a requisição http com método POST
-  
-    if(httpResponseCode>0){
-    
-      String response = https.getString();                       //Get the response to the request
-    
-      Serial.println(httpResponseCode);   //Print return code
-      Serial.println(response);           //Print request answer
-    
-    }else{
-    
-      Serial.print("Erro na requisição: ");
-      Serial.println(httpResponseCode);
-    
-    }
-    
-    https.end();  //Termina a "conexão"
-    delay(45000);
+    makeHttpsRequest();
   }else{
-  Serial.println("Wifi desconectado!");
+    Serial.println("Wifi desconectado!");
   }
 }
