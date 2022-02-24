@@ -53,9 +53,9 @@ void connect_wifi(){
 
 void makeHttpsRequest(){
   HTTPClient https;// define o objeto com métodos para fazer uma requisição http]
-  bool httpsPronto = https.begin(api_URL, ca_cert);//especifica a URL da API e o certificado 
+  
 
-  if(httpsPronto){
+  if(https.begin(api_URL, ca_cert)){//especifica a URL da API e o certificado 
 
     String code = "6bdb104d07ed03ee335b1a85798ec144c9ccdd4f6c556d63ccfcdd095cacac0a";
     String payload = "palavra";
